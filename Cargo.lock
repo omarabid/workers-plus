@@ -1898,7 +1898,21 @@ dependencies = [
 ]
 
 [[package]]
-name = "worker"
+name = "worker-kv"
+version = "0.5.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "682cbd728f179cc810b2ab77a2534da817b973e190ab184ab8efe1058b0dba84"
+dependencies = [
+ "js-sys",
+ "serde",
+ "serde_json",
+ "thiserror",
+ "wasm-bindgen",
+ "wasm-bindgen-futures",
+]
+
+[[package]]
+name = "worker-plus"
 version = "0.0.12"
 dependencies = [
  "async-trait",
@@ -1918,12 +1932,12 @@ dependencies = [
  "wasm-streams",
  "web-sys",
  "worker-kv",
- "worker-macros",
- "worker-sys",
+ "worker-plus-macros",
+ "worker-plus-sys",
 ]
 
 [[package]]
-name = "worker-build"
+name = "worker-plus-build"
 version = "0.0.8"
 dependencies = [
  "anyhow",
@@ -1935,21 +1949,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "worker-kv"
-version = "0.5.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "682cbd728f179cc810b2ab77a2534da817b973e190ab184ab8efe1058b0dba84"
-dependencies = [
- "js-sys",
- "serde",
- "serde_json",
- "thiserror",
- "wasm-bindgen",
- "wasm-bindgen-futures",
-]
-
-[[package]]
-name = "worker-macros"
+name = "worker-plus-macros"
 version = "0.0.6"
 dependencies = [
  "async-trait",
@@ -1959,11 +1959,11 @@ dependencies = [
  "wasm-bindgen",
  "wasm-bindgen-futures",
  "wasm-bindgen-macro-support",
- "worker-sys",
+ "worker-plus-sys",
 ]
 
 [[package]]
-name = "worker-sandbox"
+name = "worker-plus-sandbox"
 version = "0.1.0"
 dependencies = [
  "blake2",
@@ -1983,11 +1983,11 @@ dependencies = [
  "tokio",
  "tungstenite",
  "wasm-bindgen-test",
- "worker",
+ "worker-plus",
 ]
 
 [[package]]
-name = "worker-sys"
+name = "worker-plus-sys"
 version = "0.0.6"
 dependencies = [
  "cfg-if",
