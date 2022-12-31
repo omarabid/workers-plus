@@ -3,7 +3,7 @@ use wasm_bindgen::prelude::*;
 #[wasm_bindgen]
 extern "C" {
     #[wasm_bindgen(extends=::js_sys::Object, js_name=Context)]
-    #[derive(Debug, PartialEq, Eq)]
+    #[derive(Debug, PartialEq, Eq, Clone)]
     pub type Context;
 
     #[wasm_bindgen(method, structural, js_name=waitUntil)]
