@@ -13,7 +13,7 @@ path = "src/lib.rs"
 
 [dependencies]
 async-trait = "0.1.56"
-worker-sys = { path = "../worker-sys", version = "0.0.6-beta", package = "worker-plus-sys" }
+worker-sys = { path = "../worker-sys", version = "0.0.7", package = "worker-plus-sys" }
 syn = "1.0.96"
 proc-macro2 = "1.0.39"
 quote = "1.0.18"
