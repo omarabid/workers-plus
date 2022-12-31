@@ -1,6 +1,6 @@
 [package]
 name = "worker-plus"
-version = "0.0.12"
+version = "0.0.12-beta"
 authors = ["Cloudflare Workers Team <workers@cloudflare.com>"]
 repository = "https://github.com/cloudflare/workers-rs"
 edition = "2018"
@@ -30,4 +30,4 @@ wasm-streams = "0.2.3"
 web-sys = "0.3.57"
 worker-kv = "0.5.1"
 worker-macros = { path = "../worker-macros", version = "0.0.6", package ="worker-plus-macros" }
-worker-sys = { path = "../worker-sys", version = "0.0.6", package ="worker-plus-sys" }
+worker-sys = { path = "../worker-sys", version = "0.0.6-beta", package ="worker-plus-sys" }

@@ -1913,7 +1913,7 @@ dependencies = [
 
 [[package]]
 name = "worker-plus"
-version = "0.0.12"
+version = "0.0.12-beta"
 dependencies = [
  "async-trait",
  "chrono",
@@ -1988,7 +1988,7 @@ dependencies = [
 
 [[package]]
 name = "worker-plus-sys"
-version = "0.0.6"
+version = "0.0.6-beta"
 dependencies = [
  "cfg-if",
  "js-sys",
