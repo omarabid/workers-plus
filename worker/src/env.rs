@@ -1,3 +1,4 @@
+use crate::d1::D1Database;
 use crate::error::Error;
 #[cfg(feature = "queue")]
 use crate::Queue;
@@ -58,9 +59,14 @@ impl Env {
     pub fn service(&self, binding: &str) -> Result<Fetcher> {
         self.get_binding(binding)
     }
-    #[cfg(feature = "queue")]
     /// Access a Queue by the binding name configured in your wrangler.toml file.
+    #[cfg(feature = "queue")]
     pub fn queue(&self, binding: &str) -> Result<Queue> {
+        self.get_binding(binding)
+    }
+
+    /// Access a D1 Database by the binding name configured in your wrangler.toml file.
+    pub fn d1(&self, binding: &str) -> Result<D1Database> {
         self.get_binding(binding)
     }
 }
