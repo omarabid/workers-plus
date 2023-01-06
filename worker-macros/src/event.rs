@@ -10,7 +10,6 @@ pub fn expand_macro(attr: TokenStream, item: TokenStream) -> TokenStream {
         Fetch,
         Scheduled,
         Start,
-        #[cfg(feature = "queue")]
         Queue,
     }
     use HandlerType::*;
@@ -128,7 +127,6 @@ pub fn expand_macro(attr: TokenStream, item: TokenStream) -> TokenStream {
 
             TokenStream::from(output)
         }
-        #[cfg(feature = "queue")]
         Queue => {
             // save original fn name for re-use in the wrapper fn
             let input_fn_ident = Ident::new(

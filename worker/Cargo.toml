@@ -32,6 +32,3 @@ web-sys = "0.3.57"
 worker-kv = "0.5.1"
 worker-macros = { path = "../worker-macros", version = "0.0.6", package ="worker-plus-macros" }
 worker-sys = { path = "../worker-sys", version = "0.0.7", package ="worker-plus-sys" }
-
-[features]
-queue = [ "worker-macros/queue", "worker-sys/queue"]

@@ -1,6 +1,5 @@
 use crate::d1::D1Database;
 use crate::error::Error;
-#[cfg(feature = "queue")]
 use crate::Queue;
 use crate::{durable::ObjectNamespace, Bucket, DynamicDispatcher, Fetcher, Result};
 
@@ -60,7 +59,6 @@ impl Env {
         self.get_binding(binding)
     }
     /// Access a Queue by the binding name configured in your wrangler.toml file.
-    #[cfg(feature = "queue")]
     pub fn queue(&self, binding: &str) -> Result<Queue> {
         self.get_binding(binding)
     }

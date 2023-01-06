@@ -12,7 +12,6 @@ pub mod file;
 pub mod formdata;
 pub mod global;
 pub mod headers;
-#[cfg(feature = "queue")]
 pub mod queue;
 pub mod r2;
 pub mod request;
@@ -59,7 +58,6 @@ pub mod prelude {
     pub use crate::formdata::FormData;
     pub use crate::global::{set_timeout, WorkerGlobalScope};
     pub use crate::headers::Headers;
-    #[cfg(feature = "queue")]
     pub use crate::queue::*;
     pub use crate::request::Request;
     pub use crate::request_init::*;
