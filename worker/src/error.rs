@@ -14,6 +14,8 @@ pub enum Error {
     RouteNoDataError,
     RustError(String),
     SerdeJsonError(serde_json::Error),
+    #[cfg(feature = "queue")]
+    SerdeWasmBindgenError(serde_wasm_bindgen::Error),
 }
 
 impl From<worker_kv::KvError> for Error {
@@ -26,13 +28,6 @@ impl From<worker_kv::KvError> for Error {
 impl From<url::ParseError> for Error {
     fn from(e: url::ParseError) -> Self {
         Self::RustError(e.to_string())
-    }
-}
-
-impl From<serde_wasm_bindgen::Error> for Error {
-    fn from(e: serde_wasm_bindgen::Error) -> Self {
-        let val: JsValue = e.into();
-        val.into()
     }
 }
 
@@ -50,6 +45,8 @@ impl std::fmt::Display for Error {
             Error::RouteInsertError(e) => write!(f, "failed to insert route: {}", e),
             Error::RouteNoDataError => write!(f, "route has no corresponding shared data"),
             Error::SerdeJsonError(e) => write!(f, "Serde Error: {}", e),
+            #[cfg(feature = "queue")]
+            Error::SerdeWasmBindgenError(e) => write!(f, "Serde Error: {}", e),
         }
     }
 }
@@ -95,5 +92,11 @@ impl From<matchit::InsertError> for Error {
 impl From<serde_json::Error> for Error {
     fn from(e: serde_json::Error) -> Self {
         Error::SerdeJsonError(e)
+    }
+}
+
+impl From<serde_wasm_bindgen::Error> for Error {
+    fn from(e: serde_wasm_bindgen::Error) -> Self {
+        Error::SerdeWasmBindgenError(e)
     }
 }

@@ -26,9 +26,12 @@ serde_json = "1.0.81"
 url = "2.2.2"
 wasm-bindgen = "0.2.80"
 wasm-bindgen-futures = "0.4.30"
-serde-wasm-bindgen = "0.4.3"
+serde-wasm-bindgen = { version = "0.4.3", optional = true }
 wasm-streams = "0.2.3"
 web-sys = "0.3.57"
 worker-kv = "0.5.1"
 worker-macros = { path = "../worker-macros", version = "0.0.6", package ="worker-plus-macros" }
 worker-sys = { path = "../worker-sys", version = "0.0.7", package ="worker-plus-sys" }
+
+[features]
+queue = ["dep:serde-wasm-bindgen", "worker-macros/queue", "worker-sys/queue"]
