@@ -19,6 +19,7 @@ use crate::{env::EnvBinding, ByteStream, Date, Error, FixedLengthStream, Headers
 mod builder;
 
 /// An instance of the R2 bucket binding.
+#[derive(Debug)]
 pub struct Bucket {
     inner: EdgeR2Bucket,
 }
@@ -124,6 +125,7 @@ impl AsRef<JsValue> for Bucket {
 /// [Object] is created when you [put](Bucket::put) an object into a [Bucket]. [Object] represents
 /// the metadata of an object based on the information provided by the uploader. Every object that
 /// you [put](Bucket::put) into a [Bucket] will have an [Object] created.
+#[derive(Debug)]
 pub struct Object {
     inner: ObjectInner,
 }
@@ -310,7 +312,7 @@ impl Objects {
     }
 }
 
-#[derive(Clone)]
+#[derive(Debug, Clone)]
 pub(crate) enum ObjectInner {
     NoBody(EdgeR2Object),
     Body(EdgeR2ObjectBody),

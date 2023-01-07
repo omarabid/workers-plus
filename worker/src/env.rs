@@ -10,6 +10,7 @@ use worker_kv::KvStore;
 #[wasm_bindgen]
 extern "C" {
     /// Env contains any bindings you have associated with the Worker when you uploaded it.
+    #[derive(Debug)]
     pub type Env;
 }
 
