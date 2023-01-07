@@ -1,10 +1,8 @@
 ![workers-rs](.github/logo.png)
-[![crates.io](https://img.shields.io/crates/v/worker)](https://crates.io/crates/worker)
-[![docs.rs](https://img.shields.io/docsrs/worker)](https://docs.rs/worker)
+[![crates.io](https://img.shields.io/crates/v/worker-plus)](https://crates.io/crates/worker-plus)
+[![docs.rs](https://img.shields.io/docsrs/worker-plus)](https://docs.rs/worker-plus)
 
-Changes:
-
-- Add Clone to Context
+Note: This is a fork to workers-rs.
 
 **Work-in-progress** ergonomic Rust bindings to Cloudflare Workers environment. Write your entire worker in Rust!
 
