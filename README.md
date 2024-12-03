@@ -2,7 +2,25 @@
 [![crates.io](https://img.shields.io/crates/v/worker-plus)](https://crates.io/crates/worker-plus)
 [![docs.rs](https://img.shields.io/docsrs/worker-plus)](https://docs.rs/worker-plus)
 
-Note: This is a fork to workers-rs.
+WARNING: This is a fork of workers-rs. It merges various PR and updates dependencies without much testing. Can randomly break/panic.
+
+== PR Merged
+
+- [x] [Make Durable Objects support DECENT](https://github.com/cloudflare/workers-rs/pull/675)
+- [x] [Tower Service Trait implementation](https://github.com/cloudflare/workers-rs/pull/659)
+- [x] [Add email worker and send email support](https://github.com/cloudflare/workers-rs/pull/624)
+- [ ] [Allow user to write Result<\_, E> while use worker::\*;](https://github.com/cloudflare/workers-rs/pull/336)
+
+== Docs & Examples
+
+- [x] [Add cron worker example](https://github.com/cloudflare/workers-rs/pull/657)
+- [x] [feat: WebSocket with Durable Objects example ](https://github.com/cloudflare/workers-rs/pull/413)
+- [x] [feat: worker fetch example](https://github.com/cloudflare/workers-rs/pull/411)
+
+== Features
+
+- [x] Debug&Clone implementation for various types
+- [x] Updated dependencies
 
 **Work-in-progress** ergonomic Rust bindings to Cloudflare Workers environment. Write your entire worker in Rust!
 
@@ -50,7 +68,7 @@ Use [cargo generate](https://github.com/cargo-generate/cargo-generate) to start 
 $ cargo generate cloudflare/workers-rs
 ```
 
-There are several templates to chose from. You should see a new project layout with a `src/lib.rs`. 
+There are several templates to chose from. You should see a new project layout with a `src/lib.rs`.
 Start there! Use any local or remote crates and modules (as long as they compile to the `wasm32-unknown-unknown` target).
 
 Once you're ready to run your project, run your worker locally:
@@ -72,17 +90,17 @@ If you would like to have `wrangler` installed on your machine, see instructions
 
 `worker` `0.0.21` introduced an `http` feature flag which starts to replace custom types with widely used types from the [`http`](https://docs.rs/http/latest/http/) crate.
 
-This makes it much easier to use crates which use these standard types such as `axum` and `hyper`. 
+This makes it much easier to use crates which use these standard types such as `axum` and `hyper`.
 
 This currently does a few things:
 
-1. Introduce `Body`, which implements `http_body::Body` and is a simple wrapper around `web_sys::ReadableStream`. 
+1. Introduce `Body`, which implements `http_body::Body` and is a simple wrapper around `web_sys::ReadableStream`.
 1. The `req` argument when using the `[event(fetch)]` macro becomes `http::Request<worker::Body>`.
 1. The expected return type for the fetch handler is `http::Response<B>` where `B` can be any `http_body::Body<Data=Bytes>`.
-1. The argument for `Fetcher::fetch_request` is `http::Request<worker::Body>`. 
+1. The argument for `Fetcher::fetch_request` is `http::Request<worker::Body>`.
 1. The return type of `Fetcher::fetch_request` is `Result<http::Response<worker::Body>>`.
 
-The end result is being able to use frameworks like `axum` directly (see [example](./examples/axum)): 
+The end result is being able to use frameworks like `axum` directly (see [example](./examples/axum)):
 
 ```rust
 pub async fn root() -> &'static str {
@@ -277,14 +295,17 @@ new_classes = ["Chatroom"] # Array of new classes
 ## Queues
 
 ### Enabling queues
+
 As queues are in beta you need to enable the `queue` feature flag.
 
 Enable it by adding it to the worker dependency in your `Cargo.toml`:
+
 ```toml
 worker = {version = "...", features = ["queue"]}
 ```
 
 ### Example worker consuming and producing messages:
+
 ```rust
 use worker::*;
 use serde::{Deserialize, Serialize};
@@ -330,7 +351,9 @@ pub async fn main(message_batch: MessageBatch<MyType>, env: Env, _ctx: Context) 
     Ok(())
 }
 ```
+
 You'll need to ensure you have the correct bindings in your `wrangler.toml`:
+
 ```toml
 # ...
 [[queues.consumers]]
@@ -347,9 +370,10 @@ binding = "my_queue"
 ## RPC Support
 
 `workers-rs` has experimental support for [Workers RPC](https://developers.cloudflare.com/workers/runtime-apis/rpc/).
-For now, this relies on JavaScript bindings and may require some manual usage of `wasm-bindgen`. 
+For now, this relies on JavaScript bindings and may require some manual usage of `wasm-bindgen`.
 
 Not all features of RPC are supported yet (or have not been tested), including:
+
 - Function arguments and return values
 - Class instances
 - Stub forwarding
@@ -367,21 +391,21 @@ write more complex `wasm-bindgen` bindings and some boilerplate to make interact
 idiomatic. See [example](./examples/rpc-client/src/calculator.rs).
 
 With manually written bindings, it should be possible to support non-primitive argument and return types, using
-`serde-wasm-bindgen`. 
+`serde-wasm-bindgen`.
 
 ### Generating Client Bindings
 
 There are many routes that can be taken to describe RPC interfaces. Under the hood, Workers RPC uses
 [Cap'N Proto](https://capnproto.org/). A possible future direction is for Wasm guests to include Cap'N Proto
-serde support and speak directly to the RPC protocol, bypassing JavaScript. This would likely involve defining 
+serde support and speak directly to the RPC protocol, bypassing JavaScript. This would likely involve defining
 the RPC interface in Cap'N Proto schema and generating Rust code from that.
 
 Another popular interface schema in the WebAssembly community is
 [WIT](https://github.com/WebAssembly/component-model/blob/main/design/mvp/WIT.md). This is a lightweight format
-designed for the WebAssembly Component model. `workers-rs` includes an **experimental** code generator which 
-allows you to describe your RPC interface using WIT and generate JavaScript bindings as shown in the 
+designed for the WebAssembly Component model. `workers-rs` includes an **experimental** code generator which
+allows you to describe your RPC interface using WIT and generate JavaScript bindings as shown in the
 [rpc-client example](./examples/rpc-client/wit/calculator.wit). The easiest way to use this code generator is using a [build script](./examples/rpc-client/build.rs) as shown in the example.
-This code generator is pre-alpha, with no support guarantee, and implemented only for primitive types at this time. 
+This code generator is pre-alpha, with no support guarantee, and implemented only for primitive types at this time.
 
 ## Testing with Miniflare
 
@@ -427,8 +451,8 @@ const mf = new Miniflare({
   scriptPath: "./build/worker/shim.mjs",
   modules: true,
   modulesRules: [
-    { type: "CompiledWasm", include: ["**/*.wasm"], fallthrough: true }
-  ]
+    { type: "CompiledWasm", include: ["**/*.wasm"], fallthrough: true },
+  ],
 });
 
 const res = await mf.dispatchFetch("http://localhost");
@@ -439,6 +463,7 @@ assert.strictEqual(await res.text(), "Hello, World!");
 ## D1 Databases
 
 ### Enabling D1 databases
+
 As D1 databases are in alpha, you'll need to enable the `d1` feature on the `worker` crate.
 
 ```toml
@@ -446,6 +471,7 @@ worker = { version = "x.y.z", features = ["d1"] }
 ```
 
 ### Example usage
+
 ```rust
 use worker::*;
 
@@ -474,7 +500,6 @@ pub async fn main(request: Request, env: Env, _ctx: Context) -> Result<Response>
 		.await
 }
 ```
-
 
 # Notes and FAQ
 
@@ -535,7 +560,7 @@ edition = "2021"
 1. [Trigger](https://github.com/cloudflare/workers-rs/actions/workflows/create-release-pr.yml) a workflow to create a release PR.
 1. Review version changes and merge PR.
 1. A draft GitHub release will be created. Author release notes and publish when ready.
-1. Crates (`worker-sys`, `worker-macros`, `worker`) will be published automatically. 
+1. Crates (`worker-sys`, `worker-macros`, `worker`) will be published automatically.
 
 # Contributing
 
