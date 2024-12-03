@@ -1,7 +1,7 @@
 use std::{collections::HashMap, future::Future, rc::Rc};
 
 use futures_util::future::LocalBoxFuture;
-use matchit::{Match, Node};
+use matchit::{Match, Router as MatchItRouter};
 use worker_kv::KvStore;
 
 use crate::{
@@ -43,8 +43,8 @@ impl<D> Clone for Handler<'_, D> {
 
 /// A path-based HTTP router supporting exact-match or wildcard placeholders and shared data.
 pub struct Router<'a, D> {
-    handlers: HashMap<Method, Node<Handler<'a, D>>>,
-    or_else_any_method: Node<Handler<'a, D>>,
+    handlers: HashMap<Method, MatchItRouter<Handler<'a, D>>>,
+    or_else_any_method: MatchItRouter<Handler<'a, D>>,
     data: D,
 }
 
@@ -90,7 +90,7 @@ impl<D> RouteContext<D> {
         self.env.durable_object(binding)
     }
 
-    /// Get a URL parameter parsed by the router, by the name of its match or wildecard placeholder.
+    /// Get a URL parameter parsed by the router, by the name of its match or wildcard placeholder.
     pub fn param(&self, key: &str) -> Option<&String> {
         self.params.get(key)
     }
@@ -104,6 +104,12 @@ impl<D> RouteContext<D> {
     /// Get a R2 Bucket associated with this Worker, should one exist.
     pub fn bucket(&self, binding: &str) -> Result<Bucket> {
         self.env.bucket(binding)
+    }
+
+    /// Access a D1 Database by the binding name configured in your wrangler.toml file.
+    #[cfg(feature = "d1")]
+    pub fn d1(&self, binding: &str) -> Result<crate::D1Database> {
+        self.env.d1(binding)
     }
 }
 
@@ -120,7 +126,7 @@ impl<'a, D: 'a> Router<'a, D> {
     pub fn with_data(data: D) -> Self {
         Self {
             handlers: HashMap::new(),
-            or_else_any_method: Node::new(),
+            or_else_any_method: MatchItRouter::new(),
             data,
         }
     }
@@ -184,7 +190,11 @@ impl<'a, D: 'a> Router<'a, D> {
 
     /// Register an HTTP handler that will exclusively respond to HEAD requests. Enables the use of
     /// `async/await` syntax in the callback.
-    pub fn head_async<T>(mut self, pattern: &str, func: fn(Request, RouteContext<D>) -> T) -> Self
+    pub fn head_async<T>(
+        mut self,
+        pattern: &str,
+        func: impl Fn(Request, RouteContext<D>) -> T + 'a,
+    ) -> Self
     where
         T: Future<Output = Result<Response>> + 'a,
     {
@@ -198,7 +208,11 @@ impl<'a, D: 'a> Router<'a, D> {
 
     /// Register an HTTP handler that will exclusively respond to GET requests. Enables the use of
     /// `async/await` syntax in the callback.
-    pub fn get_async<T>(mut self, pattern: &str, func: fn(Request, RouteContext<D>) -> T) -> Self
+    pub fn get_async<T>(
+        mut self,
+        pattern: &str,
+        func: impl Fn(Request, RouteContext<D>) -> T + 'a,
+    ) -> Self
     where
         T: Future<Output = Result<Response>> + 'a,
     {
@@ -212,7 +226,11 @@ impl<'a, D: 'a> Router<'a, D> {
 
     /// Register an HTTP handler that will exclusively respond to POST requests. Enables the use of
     /// `async/await` syntax in the callback.
-    pub fn post_async<T>(mut self, pattern: &str, func: fn(Request, RouteContext<D>) -> T) -> Self
+    pub fn post_async<T>(
+        mut self,
+        pattern: &str,
+        func: impl Fn(Request, RouteContext<D>) -> T + 'a,
+    ) -> Self
     where
         T: Future<Output = Result<Response>> + 'a,
     {
@@ -226,7 +244,11 @@ impl<'a, D: 'a> Router<'a, D> {
 
     /// Register an HTTP handler that will exclusively respond to PUT requests. Enables the use of
     /// `async/await` syntax in the callback.
-    pub fn put_async<T>(mut self, pattern: &str, func: fn(Request, RouteContext<D>) -> T) -> Self
+    pub fn put_async<T>(
+        mut self,
+        pattern: &str,
+        func: impl Fn(Request, RouteContext<D>) -> T + 'a,
+    ) -> Self
     where
         T: Future<Output = Result<Response>> + 'a,
     {
@@ -240,7 +262,11 @@ impl<'a, D: 'a> Router<'a, D> {
 
     /// Register an HTTP handler that will exclusively respond to PATCH requests. Enables the use of
     /// `async/await` syntax in the callback.
-    pub fn patch_async<T>(mut self, pattern: &str, func: fn(Request, RouteContext<D>) -> T) -> Self
+    pub fn patch_async<T>(
+        mut self,
+        pattern: &str,
+        func: impl Fn(Request, RouteContext<D>) -> T + 'a,
+    ) -> Self
     where
         T: Future<Output = Result<Response>> + 'a,
     {
@@ -254,7 +280,11 @@ impl<'a, D: 'a> Router<'a, D> {
 
     /// Register an HTTP handler that will exclusively respond to DELETE requests. Enables the use
     /// of `async/await` syntax in the callback.
-    pub fn delete_async<T>(mut self, pattern: &str, func: fn(Request, RouteContext<D>) -> T) -> Self
+    pub fn delete_async<T>(
+        mut self,
+        pattern: &str,
+        func: impl Fn(Request, RouteContext<D>) -> T + 'a,
+    ) -> Self
     where
         T: Future<Output = Result<Response>> + 'a,
     {
@@ -271,7 +301,7 @@ impl<'a, D: 'a> Router<'a, D> {
     pub fn options_async<T>(
         mut self,
         pattern: &str,
-        func: fn(Request, RouteContext<D>) -> T,
+        func: impl Fn(Request, RouteContext<D>) -> T + 'a,
     ) -> Self
     where
         T: Future<Output = Result<Response>> + 'a,
@@ -286,7 +316,11 @@ impl<'a, D: 'a> Router<'a, D> {
 
     /// Register an HTTP handler that will respond to any requests. Enables the use of `async/await`
     /// syntax in the callback.
-    pub fn on_async<T>(mut self, pattern: &str, func: fn(Request, RouteContext<D>) -> T) -> Self
+    pub fn on_async<T>(
+        mut self,
+        pattern: &str,
+        func: impl Fn(Request, RouteContext<D>) -> T + 'a,
+    ) -> Self
     where
         T: Future<Output = Result<Response>> + 'a,
     {
@@ -303,7 +337,7 @@ impl<'a, D: 'a> Router<'a, D> {
     pub fn or_else_any_method_async<T>(
         mut self,
         pattern: &str,
-        func: fn(Request, RouteContext<D>) -> T,
+        func: impl Fn(Request, RouteContext<D>) -> T + 'a,
     ) -> Self
     where
         T: Future<Output = Result<Response>> + 'a,
@@ -321,7 +355,7 @@ impl<'a, D: 'a> Router<'a, D> {
         for method in methods {
             self.handlers
                 .entry(method.clone())
-                .or_insert_with(Node::new)
+                .or_default()
                 .insert(pattern, func.clone())
                 .unwrap_or_else(|e| {
                     panic!(
@@ -377,7 +411,7 @@ impl<'a, D: 'a> Router<'a, D> {
     }
 }
 
-type NodeWithHandlers<'a, D> = Node<Handler<'a, D>>;
+type NodeWithHandlers<'a, D> = MatchItRouter<Handler<'a, D>>;
 
 impl<'a, D: 'a> Router<'a, D> {
     fn split(

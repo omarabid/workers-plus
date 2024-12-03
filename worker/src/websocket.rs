@@ -1,15 +1,21 @@
-use crate::{Error, Fetch, Method, Request, Result};
+use crate::{Error, Method, Request, Result};
 use futures_channel::mpsc::UnboundedReceiver;
 use futures_util::Stream;
+use js_sys::Uint8Array;
 use serde::Serialize;
 use url::Url;
+use worker_sys::ext::WebSocketExt;
 
+#[cfg(not(feature = "http"))]
+use crate::Fetch;
 use std::pin::Pin;
 use std::rc::Rc;
 use std::task::{Context, Poll};
 use wasm_bindgen::convert::FromWasmAbi;
 use wasm_bindgen::prelude::Closure;
-use wasm_bindgen::{JsCast, JsValue};
+use wasm_bindgen::JsCast;
+#[cfg(feature = "http")]
+use wasm_bindgen_futures::JsFuture;
 
 pub use crate::ws_events::*;
 
@@ -20,10 +26,13 @@ pub struct WebSocketPair {
     pub server: WebSocket,
 }
 
+unsafe impl Send for WebSocketPair {}
+unsafe impl Sync for WebSocketPair {}
+
 impl WebSocketPair {
     /// Creates a new `WebSocketPair`.
     pub fn new() -> Result<Self> {
-        let mut pair = worker_sys::WebSocketPair::new();
+        let mut pair = worker_sys::WebSocketPair::new()?;
         let client = pair.client()?.into();
         let server = pair.server()?.into();
         Ok(Self { client, server })
@@ -33,8 +42,11 @@ impl WebSocketPair {
 /// Wrapper struct for underlying worker-sys `WebSocket`
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct WebSocket {
-    socket: worker_sys::WebSocket,
+    socket: web_sys::WebSocket,
 }
+
+unsafe impl Send for WebSocket {}
+unsafe impl Sync for WebSocket {}
 
 impl WebSocket {
     /// Attempts to establish a [`WebSocket`] connection to the provided [`Url`].
@@ -62,7 +74,21 @@ impl WebSocket {
     ///
     /// Response::error("never got a message echoed back :(", 500)
     /// ```
-    pub async fn connect(mut url: Url) -> Result<WebSocket> {
+    pub async fn connect(url: Url) -> Result<WebSocket> {
+        WebSocket::connect_with_protocols(url, None).await
+    }
+
+    /// Attempts to establish a [`WebSocket`] connection to the provided [`Url`] and protocol.
+    ///
+    /// # Example:
+    /// ```rust,ignore
+    /// let ws = WebSocket::connect_with_protocols("wss://echo.zeb.workers.dev/".parse()?, Some(vec!["GiggleBytes"])).await?;
+    ///
+    /// ```
+    pub async fn connect_with_protocols(
+        mut url: Url,
+        protocols: Option<Vec<&str>>,
+    ) -> Result<WebSocket> {
         let scheme: String = match url.scheme() {
             "ws" => "http".into(),
             "wss" => "https".into(),
@@ -76,7 +102,18 @@ impl WebSocket {
         let mut req = Request::new(url.as_str(), Method::Get)?;
         req.headers_mut()?.set("upgrade", "websocket")?;
 
+        match protocols {
+            None => {}
+            Some(v) => {
+                req.headers_mut()?
+                    .set("Sec-WebSocket-Protocol", v.join(",").as_str())?;
+            }
+        }
+
+        #[cfg(not(feature = "http"))]
         let res = Fetch::Request(req).send().await?;
+        #[cfg(feature = "http")]
+        let res: crate::Response = fetch_with_request_raw(req).await?.into();
 
         match res.websocket() {
             Some(ws) => Ok(ws),
@@ -104,10 +141,13 @@ impl WebSocket {
 
     /// Sends raw binary data through the `WebSocket`.
     pub fn send_with_bytes<D: AsRef<[u8]>>(&self, bytes: D) -> Result<()> {
-        let slice = bytes.as_ref();
-        let array = js_sys::Uint8Array::new_with_length(slice.len() as u32);
-        array.copy_from(slice);
-        self.socket.send_with_u8_array(array).map_err(Error::from)
+        // This clone to Uint8Array must happen, because workerd
+        // will not clone the supplied buffer and will send it asynchronously.
+        // Rust believes that the lifetime ends when `send` returns, and frees
+        // the memory, causing corruption.
+        let uint8_array = Uint8Array::from(bytes.as_ref());
+        self.socket.send_with_array_buffer(&uint8_array.buffer())?;
+        Ok(())
     }
 
     /// Closes this channel.
@@ -146,10 +186,7 @@ impl WebSocket {
     ) -> Result<Closure<dyn FnMut(T)>> {
         let js_callback = Closure::wrap(Box::new(fun) as Box<dyn FnMut(T)>);
         self.socket
-            .add_event_listener(
-                JsValue::from_str(r#type),
-                Some(js_callback.as_ref().unchecked_ref()),
-            )
+            .add_event_listener_with_callback(r#type, js_callback.as_ref().unchecked_ref())
             .map_err(Error::from)?;
 
         Ok(js_callback)
@@ -164,10 +201,7 @@ impl WebSocket {
         js_callback: Closure<dyn FnMut(T)>,
     ) -> Result<()> {
         self.socket
-            .remove_event_listener(
-                JsValue::from_str(r#type),
-                Some(js_callback.as_ref().unchecked_ref()),
-            )
+            .remove_event_listener_with_callback(r#type, js_callback.as_ref().unchecked_ref())
             .map_err(Error::from)
     }
 
@@ -179,20 +213,20 @@ impl WebSocket {
 
         let close_closure = self.add_event_handler("close", {
             let tx = tx.clone();
-            move |event: worker_sys::CloseEvent| {
+            move |event: web_sys::CloseEvent| {
                 tx.unbounded_send(Ok(WebsocketEvent::Close(event.into())))
                     .unwrap();
             }
         })?;
         let message_closure = self.add_event_handler("message", {
             let tx = tx.clone();
-            move |event: worker_sys::MessageEvent| {
+            move |event: web_sys::MessageEvent| {
                 tx.unbounded_send(Ok(WebsocketEvent::Message(event.into())))
                     .unwrap();
             }
         })?;
         let error_closure =
-            self.add_event_handler("error", move |event: worker_sys::ErrorEvent| {
+            self.add_event_handler("error", move |event: web_sys::ErrorEvent| {
                 let error = event.error();
                 tx.unbounded_send(Err(error.into())).unwrap();
             })?;
@@ -204,12 +238,30 @@ impl WebSocket {
             closures: Some((message_closure, error_closure, close_closure)),
         })
     }
+
+    pub fn serialize_attachment<T: Serialize>(&self, value: T) -> Result<()> {
+        self.socket
+            .serialize_attachment(serde_wasm_bindgen::to_value(&value)?)
+            .map_err(Error::from)
+    }
+
+    pub fn deserialize_attachment<T: serde::de::DeserializeOwned>(&self) -> Result<Option<T>> {
+        let value = self.socket.deserialize_attachment().map_err(Error::from)?;
+
+        if value.is_null() || value.is_undefined() {
+            return Ok(None);
+        }
+
+        serde_wasm_bindgen::from_value::<T>(value)
+            .map(Some)
+            .map_err(Error::from)
+    }
 }
 
 type EvCallback<T> = Closure<dyn FnMut(T)>;
 
 /// A [`Stream`](futures::Stream) that yields [`WebsocketEvent`](crate::ws_events::WebsocketEvent)s
-/// emitted by the inner [`WebSocket`](crate::WebSocket). The stream is guranteed to always yield a
+/// emitted by the inner [`WebSocket`](crate::WebSocket). The stream is guaranteed to always yield a
 /// `WebsocketEvent::Close` as the final non-none item.
 ///
 /// # Example
@@ -242,9 +294,9 @@ pub struct EventStream<'ws> {
     /// Once we have decided we need to finish the stream, we need to remove any listeners we
     /// registered with the websocket.
     closures: Option<(
-        EvCallback<worker_sys::MessageEvent>,
-        EvCallback<worker_sys::ErrorEvent>,
-        EvCallback<worker_sys::CloseEvent>,
+        EvCallback<web_sys::MessageEvent>,
+        EvCallback<web_sys::ErrorEvent>,
+        EvCallback<web_sys::CloseEvent>,
     )>,
 }
 
@@ -296,14 +348,14 @@ impl PinnedDrop for EventStream<'_> {
     }
 }
 
-impl From<worker_sys::WebSocket> for WebSocket {
-    fn from(socket: worker_sys::WebSocket) -> Self {
+impl From<web_sys::WebSocket> for WebSocket {
+    fn from(socket: web_sys::WebSocket) -> Self {
         Self { socket }
     }
 }
 
-impl AsRef<worker_sys::WebSocket> for WebSocket {
-    fn as_ref(&self) -> &worker_sys::WebSocket {
+impl AsRef<web_sys::WebSocket> for WebSocket {
+    fn as_ref(&self) -> &web_sys::WebSocket {
         &self.socket
     }
 }
@@ -324,17 +376,17 @@ pub mod ws_events {
     /// Wrapper/Utility struct for the `web_sys::MessageEvent`
     #[derive(Debug, Clone, PartialEq, Eq)]
     pub struct MessageEvent {
-        event: worker_sys::MessageEvent,
+        event: web_sys::MessageEvent,
     }
 
-    impl From<worker_sys::MessageEvent> for MessageEvent {
-        fn from(event: worker_sys::MessageEvent) -> Self {
+    impl From<web_sys::MessageEvent> for MessageEvent {
+        fn from(event: web_sys::MessageEvent) -> Self {
             Self { event }
         }
     }
 
-    impl AsRef<worker_sys::MessageEvent> for MessageEvent {
-        fn as_ref(&self) -> &worker_sys::MessageEvent {
+    impl AsRef<web_sys::MessageEvent> for MessageEvent {
+        fn as_ref(&self) -> &web_sys::MessageEvent {
             &self.event
         }
     }
@@ -372,7 +424,7 @@ pub mod ws_events {
     /// Wrapper/Utility struct for the `web_sys::CloseEvent`
     #[derive(Debug, Clone, PartialEq, Eq)]
     pub struct CloseEvent {
-        event: worker_sys::CloseEvent,
+        event: web_sys::CloseEvent,
     }
 
     impl CloseEvent {
@@ -389,15 +441,27 @@ pub mod ws_events {
         }
     }
 
-    impl From<worker_sys::CloseEvent> for CloseEvent {
-        fn from(event: worker_sys::CloseEvent) -> Self {
+    impl From<web_sys::CloseEvent> for CloseEvent {
+        fn from(event: web_sys::CloseEvent) -> Self {
             Self { event }
         }
     }
 
-    impl AsRef<worker_sys::CloseEvent> for CloseEvent {
-        fn as_ref(&self) -> &worker_sys::CloseEvent {
+    impl AsRef<web_sys::CloseEvent> for CloseEvent {
+        fn as_ref(&self) -> &web_sys::CloseEvent {
             &self.event
         }
     }
+}
+
+/// TODO: Convert WebSocket to use `http` types and `reqwest`.
+#[cfg(feature = "http")]
+async fn fetch_with_request_raw(request: crate::Request) -> Result<web_sys::Response> {
+    let req = request.inner();
+    let fut = {
+        let worker: web_sys::WorkerGlobalScope = js_sys::global().unchecked_into();
+        crate::send::SendFuture::new(JsFuture::from(worker.fetch_with_request(req)))
+    };
+    let resp = fut.await?;
+    Ok(resp.dyn_into()?)
 }

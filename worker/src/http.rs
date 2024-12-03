@@ -1,8 +1,22 @@
+use std::fmt::Display;
+
+#[cfg(feature = "http")]
+pub mod body;
+#[cfg(feature = "http")]
+mod header;
+#[cfg(feature = "http")]
+mod redirect;
+#[cfg(feature = "http")]
+pub mod request;
+#[cfg(feature = "http")]
+pub mod response;
+
 /// A [`Method`](https://developer.mozilla.org/en-US/docs/Web/API/Request/method) representation
 /// used on Request objects.
-#[derive(Debug, Clone, PartialEq, Hash, Eq)]
+#[derive(Default, Debug, Clone, PartialEq, Hash, Eq)]
 pub enum Method {
     Head = 0,
+    #[default]
     Get,
     Post,
     Put,
@@ -67,14 +81,9 @@ impl AsRef<str> for Method {
     }
 }
 
-impl ToString for Method {
-    fn to_string(&self) -> String {
-        (*self).clone().into()
-    }
-}
-
-impl Default for Method {
-    fn default() -> Self {
-        Method::Get
+impl Display for Method {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::result::Result<(), std::fmt::Error> {
+        let s: String = (*self).clone().into();
+        write!(f, "{}", s)
     }
 }

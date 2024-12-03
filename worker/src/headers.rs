@@ -9,17 +9,17 @@ use std::{
 use http::{header::HeaderName, HeaderMap, HeaderValue};
 use js_sys::Array;
 use wasm_bindgen::JsValue;
-use worker_sys::Headers as EdgeHeaders;
+use worker_sys::ext::HeadersExt;
 
 /// A [Headers](https://developer.mozilla.org/en-US/docs/Web/API/Headers) representation used in
 /// Request and Response objects.
-pub struct Headers(pub EdgeHeaders);
+pub struct Headers(pub web_sys::Headers);
 
 impl std::fmt::Debug for Headers {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         f.write_str("Headers {\n")?;
         for (k, v) in self.entries() {
-            f.write_str(&format!("{} = {}\n", k, v))?;
+            f.write_str(&format!("{k} = {v}\n"))?;
         }
         f.write_str("}\n")
     }
@@ -56,7 +56,7 @@ impl Headers {
 
     /// Deletes a header from a `Headers` object.
     /// Returns an error if the name is invalid (e.g. contains spaces)
-    /// or if the JS Headers objects's guard is immutable (e.g. for an incoming request)
+    /// or if the JS Headers object's guard is immutable (e.g. for an incoming request)
     pub fn delete(&mut self, name: &str) -> Result<()> {
         self.0.delete(name).map_err(Error::from)
     }
@@ -65,8 +65,6 @@ impl Headers {
     pub fn entries(&self) -> HeaderIterator {
         self.0
             .entries()
-            // Header.entries() doesn't error: https://developer.mozilla.org/en-US/docs/Web/API/Headers/entries
-            .unwrap()
             .into_iter()
             // The entries iterator.next() will always return a proper value: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Iteration_protocols
             .map((|a| a.unwrap().into()) as F1)
@@ -79,8 +77,6 @@ impl Headers {
     pub fn keys(&self) -> impl Iterator<Item = String> {
         self.0
             .keys()
-            // Header.keys() doesn't error: https://developer.mozilla.org/en-US/docs/Web/API/Headers/keys
-            .unwrap()
             .into_iter()
             // The keys iterator.next() will always return a proper value containing a string
             .map(|a| a.unwrap().as_string().unwrap())
@@ -91,18 +87,28 @@ impl Headers {
     pub fn values(&self) -> impl Iterator<Item = String> {
         self.0
             .values()
-            // Header.values() doesn't error: https://developer.mozilla.org/en-US/docs/Web/API/Headers/values
-            .unwrap()
             .into_iter()
             // The values iterator.next() will always return a proper value containing a string
             .map(|a| a.unwrap().as_string().unwrap())
+    }
+
+    /// Returns all the values of a header within a `Headers` object with a given name.
+    pub fn get_all(&self, name: &str) -> Result<Vec<String>> {
+        let array = self.0.get_all(name);
+        array
+            .iter()
+            .map(|v| {
+                v.as_string()
+                    .ok_or_else(|| Error::JsError("Invalid header value".into()))
+            })
+            .collect()
     }
 }
 
 impl Default for Headers {
     fn default() -> Self {
         // This cannot throw an error: https://developer.mozilla.org/en-US/docs/Web/API/Headers/Headers
-        Headers(EdgeHeaders::new().unwrap())
+        Headers(web_sys::Headers::new().unwrap())
     }
 }
 
@@ -186,6 +192,6 @@ impl From<Headers> for HeaderMap {
 impl Clone for Headers {
     fn clone(&self) -> Self {
         // Headers constructor doesn't throw an error
-        Headers(EdgeHeaders::new_with_headers(&self.0).unwrap())
+        Headers(web_sys::Headers::new_with_headers(&self.0).unwrap())
     }
 }

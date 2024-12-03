@@ -1,19 +1,19 @@
 [package]
-name = "worker-plus-sys"
+name = "worker-sys"
 authors = ["Cloudflare Workers Team <workers@cloudflare.com>"]
 edition = "2018"
-version = "0.0.8"
+version = "0.4.2"
 license = "Apache-2.0"
 repository = "https://github.com/cloudflare/workers-rs/tree/main/worker-sys"
 description = "Low-level extern definitions / FFI bindings to the Cloudflare Workers JS Runtime."
 
 [dependencies]
+js-sys.workspace = true
+wasm-bindgen.workspace = true
 cfg-if = "1.0.0"
-js-sys = "0.3.57"
-wasm-bindgen = "0.2.80"
 
 [dependencies.web-sys]
-version = "0.3.60"
+version = ">=0.3.70"
 features = [
     "ReadableStream",
     "WritableStream",
@@ -26,4 +26,20 @@ features = [
     "MessageEvent",
     "CloseEvent",
     "ProgressEvent",
+    "WebSocket",
+    "TransformStream",
+    "AbortController",
+    "console",
+    "ResponseInit",
+    "Cache",
+    "CacheStorage",
+    "CacheQueryOptions",
+    "AbortSignal",
+    "Headers",
+    "Request",
+    "Response",
 ]
+
+[features]
+d1 = []
+queue = []

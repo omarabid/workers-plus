@@ -61,9 +61,9 @@ impl Cors {
     /// Configures which headers are allowed for cors.
     pub fn with_allowed_headers<S: Into<String>, V: IntoIterator<Item = S>>(
         mut self,
-        origins: V,
+        headers: V,
     ) -> Self {
-        self.allowed_headers = origins
+        self.allowed_headers = headers
             .into_iter()
             .map(|item| item.into())
             .collect::<Vec<String>>();
@@ -73,9 +73,9 @@ impl Cors {
     /// Configures which headers the client is allowed to access.
     pub fn with_exposed_headers<S: Into<String>, V: IntoIterator<Item = S>>(
         mut self,
-        origins: V,
+        headers: V,
     ) -> Self {
-        self.exposed_headers = origins
+        self.exposed_headers = headers
             .into_iter()
             .map(|item| item.into())
             .collect::<Vec<String>>();
@@ -88,7 +88,7 @@ impl Cors {
             headers.set("Access-Control-Allow-Credentials", "true")?;
         }
         if let Some(ref max_age) = self.max_age {
-            headers.set("Access-Control-Max-Age", format!("{}", max_age).as_str())?;
+            headers.set("Access-Control-Max-Age", format!("{max_age}").as_str())?;
         }
         if !self.origins.is_empty() {
             headers.set(

@@ -1,3 +1,5 @@
+use std::fmt::Display;
+
 use chrono::offset::TimeZone;
 use chrono::Datelike;
 use js_sys::Date as JsDate;
@@ -39,12 +41,6 @@ impl From<DateInit> for Date {
     }
 }
 
-impl From<JsDate> for Date {
-    fn from(js_date: JsDate) -> Self {
-        Self { js_date }
-    }
-}
-
 impl Date {
     /// Create a new Date, which requires being initialized from a known DateInit value.
     pub fn new(init: DateInit) -> Self {
@@ -71,12 +67,13 @@ impl Date {
     }
 }
 
-impl ToString for Date {
-    fn to_string(&self) -> String {
-        self.js_date.to_string().into()
+impl Display for Date {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::result::Result<(), std::fmt::Error> {
+        write!(f, "{}", self.js_date.to_string())
     }
 }
 
+#[allow(deprecated)]
 impl<T: TimeZone> From<chrono::Date<T>> for Date {
     fn from(d: chrono::Date<T>) -> Self {
         Self {
@@ -98,5 +95,11 @@ impl<T: TimeZone> From<chrono::DateTime<T>> for Date {
 impl From<Date> for JsDate {
     fn from(val: Date) -> Self {
         val.js_date
+    }
+}
+
+impl From<JsDate> for Date {
+    fn from(js_date: JsDate) -> Self {
+        Self { js_date }
     }
 }
