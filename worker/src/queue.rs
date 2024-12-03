@@ -11,6 +11,7 @@ use wasm_bindgen_futures::JsFuture;
 use worker_sys::{Message as MessageSys, MessageBatch as MessageBatchSys, Queue as EdgeQueue};
 
 /// A batch of messages that are sent to a consumer Worker.
+#[derive(Debug)]
 pub struct MessageBatch<T> {
     inner: MessageBatchSys,
     phantom: PhantomData<T>,
