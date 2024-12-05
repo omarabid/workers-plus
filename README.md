@@ -8,6 +8,7 @@ WARNING: This is a fork of workers-rs. It merges various PR and updates dependen
 
 - [x] [Make Durable Objects support DECENT](https://github.com/cloudflare/workers-rs/pull/675)
 - [x] [Tower Service Trait implementation](https://github.com/cloudflare/workers-rs/pull/659)
+- [x] [IntoSend Trait](https://github.com/cloudflare/workers-rs/pull/676)
 - [x] [Add email worker and send email support](https://github.com/cloudflare/workers-rs/pull/624)
 - [ ] [Allow user to write Result<\_, E> while use worker::\*;](https://github.com/cloudflare/workers-rs/pull/336)
 
