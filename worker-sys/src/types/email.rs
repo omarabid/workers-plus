@@ -5,7 +5,7 @@ use web_sys::{Headers, ReadableStream};
 #[wasm_bindgen]
 extern "C" {
     #[wasm_bindgen(extends=js_sys::Object)]
-    #[derive(Clone, PartialEq, Eq)]
+    #[derive(Debug, Clone, PartialEq, Eq)]
     pub type EmailMessage;
 
     // TODO(lduarte): see if also accepting string is needed
@@ -22,7 +22,7 @@ extern "C" {
 #[wasm_bindgen]
 extern "C" {
     #[wasm_bindgen(extends=js_sys::Object)]
-    #[derive(Clone, PartialEq, Eq)]
+    #[derive(Debug, Clone, PartialEq, Eq)]
     pub type ForwardableEmailMessage;
 
     #[wasm_bindgen(method, getter)]
@@ -55,7 +55,7 @@ extern "C" {
 #[wasm_bindgen]
 extern "C" {
     #[wasm_bindgen(extends=js_sys::Object)]
-    #[derive(Clone, PartialEq, Eq)]
+    #[derive(Debug, Clone, PartialEq, Eq)]
     pub type SendEmail;
 
     #[wasm_bindgen(method, catch)]
