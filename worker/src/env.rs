@@ -8,6 +8,8 @@ use crate::SendEmail;
 use crate::{durable::ObjectNamespace, Bucket, DynamicDispatcher, Fetcher, Result};
 use crate::{error::Error, hyperdrive::Hyperdrive};
 
+use crate::Ai;
+
 use js_sys::Object;
 use serde::de::DeserializeOwned;
 use wasm_bindgen::{prelude::*, JsCast, JsValue};
@@ -36,6 +38,10 @@ impl Env {
             // resulting in a terribly annoying javascript error which can't be caught
             T::get(binding)
         }
+    }
+
+    pub fn ai(&self, binding: &str) -> Result<Ai> {
+        self.get_binding::<Ai>(binding)
     }
 
     /// Access Secret value bindings added to your Worker via the UI or `wrangler`:
@@ -97,6 +103,11 @@ impl Env {
     /// Access a D1 Database by the binding name configured in your wrangler.toml file.
     #[cfg(feature = "d1")]
     pub fn d1(&self, binding: &str) -> Result<D1Database> {
+        self.get_binding(binding)
+    }
+
+    /// Access the worker assets by the binding name configured in your wrangler.toml file.
+    pub fn assets(&self, binding: &str) -> Result<Fetcher> {
         self.get_binding(binding)
     }
 
