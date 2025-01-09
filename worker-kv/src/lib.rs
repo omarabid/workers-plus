@@ -176,6 +176,9 @@ pub enum KvError {
     InvalidKvStore(String),
 }
 
+unsafe impl Send for KvError {}
+unsafe impl Sync for KvError {}
+
 impl From<KvError> for JsValue {
     fn from(val: KvError) -> Self {
         match val {
