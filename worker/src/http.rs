@@ -27,6 +27,7 @@ pub enum Method {
     Options,
     Connect,
     Trace,
+    Report,
 }
 
 impl Method {
@@ -41,6 +42,7 @@ impl Method {
             Method::Options,
             Method::Connect,
             Method::Trace,
+            Method::Report,
         ]
     }
 }
@@ -56,6 +58,7 @@ impl From<String> for Method {
             "OPTIONS" => Method::Options,
             "CONNECT" => Method::Connect,
             "TRACE" => Method::Trace,
+            "REPORT" => Method::Report,
             _ => Method::Get,
         }
     }
@@ -79,6 +82,7 @@ impl AsRef<str> for Method {
             Method::Connect => "CONNECT",
             Method::Trace => "TRACE",
             Method::Get => "GET",
+            Method::Report => "REPORT",
         }
     }
 }
