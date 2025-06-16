@@ -35,34 +35,20 @@ url = "2.5.4"
 serde-wasm-bindgen = "0.6.5"
 serde_urlencoded = "0.7"
 wasm-streams = "0.4"
-worker-kv = { path = "../worker-kv", version = "0.7.0" }
-worker-macros = { path = "../worker-macros", version = "0.5.0" }
-worker-sys = { path = "../worker-sys", version = "0.5.0" }
-
-[dependencies.chrono-tz]
-optional = true
-version = "0.8.4"
-default-features = false
-
-[dependencies.web-sys]
-version = ">=0.3.70"
-features = [
+worker-kv.workspace = true
+worker-macros.workspace = true
+worker-sys.workspace = true
+chrono-tz = { version = "0.10.3", optional = true, default-features = false }
+web-sys = { version = "0.3.70", features = [
     "File",
     "WorkerGlobalScope",
     "ReadableStreamDefaultReader",
     "WritableStreamDefaultWriter",
-]
-
-[dependencies.tokio-postgres]
-version = "0.7"
-default-features = false
-features = ["js"]
-optional = true
-
-[dependencies.axum]
-version = "0.7"
-optional = true
-default-features = false
+] }
+tokio-postgres = { version = "0.7", optional = true, default-features = false, features = [
+    "js",
+] }
+axum = { version = "0.8", optional = true, default-features = false }
 
 [dependencies.tower]
 version = "0.5.1"
