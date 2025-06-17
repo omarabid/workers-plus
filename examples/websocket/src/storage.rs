@@ -37,7 +37,7 @@ impl Storage {
             Update::Decrease => count -= 1,
             Update::Increase => count += 1,
         };
-        let mut storage = self.0.storage();
+        let storage = self.0.storage();
         storage.put(ONLINE_USERS, count).await?;
 
         Ok(count)

@@ -30,7 +30,7 @@ impl DurableObject for LiveCounter {
 
     // this will be called using its stub (fetch_with_request or fetch_with_str)
     // note - it is not to be called directly.
-    async fn fetch(&mut self, req: Request) -> worker::Result<Response> {
+    async fn fetch(&self, req: Request) -> worker::Result<Response> {
         match Route::new(&req) {
             Ok(route) => match route {
                 Route::Chat(info) => Route::websocket(self.clone(), info).await,

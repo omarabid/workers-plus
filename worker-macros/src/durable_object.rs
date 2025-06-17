@@ -38,14 +38,14 @@ mod bindgen_methods {
 
             #[wasm_bindgen(js_name = fetch)]
             pub fn fetch(
-                &mut self,
+                &self,
                 req: ::worker::worker_sys::web_sys::Request
             ) -> ::worker::js_sys::Promise {
                 // SAFETY:
                 // Durable Object will never be destroyed while there is still
                 // a running promise inside of it, therefore we can let a reference
                 // to the durable object escape into a static-lifetime future.
-                let static_self: &'static mut Self = unsafe {&mut *(self as *mut _)};
+                let static_self: &'static Self = unsafe {&*(self as *const _)};
 
                 ::worker::wasm_bindgen_futures::future_to_promise(async move {
                     <Self as ::worker::DurableObject>::fetch(static_self, req.into()).await
@@ -60,12 +60,12 @@ mod bindgen_methods {
     pub fn alarm() -> TokenStream {
         quote! {
             #[wasm_bindgen(js_name = alarm)]
-            pub fn alarm(&mut self) -> ::worker::js_sys::Promise {
+            pub fn alarm(&self) -> ::worker::js_sys::Promise {
                 // SAFETY:
                 // Durable Object will never be destroyed while there is still
                 // a running promise inside of it, therefore we can let a reference
                 // to the durable object escape into a static-lifetime future.
-                let static_self: &'static mut Self = unsafe {&mut *(self as *mut _)};
+                let static_self: &'static Self = unsafe {&*(self as *const _)};
 
                 ::worker::wasm_bindgen_futures::future_to_promise(async move {
                     <Self as ::worker::DurableObject>::alarm(static_self).await
@@ -81,7 +81,7 @@ mod bindgen_methods {
         quote! {
             #[wasm_bindgen(js_name = webSocketMessage)]
             pub fn websocket_message(
-                &mut self,
+                &self,
                 ws: ::worker::worker_sys::web_sys::WebSocket,
                 message: ::worker::wasm_bindgen::JsValue
             ) -> ::worker::js_sys::Promise {
@@ -96,7 +96,7 @@ mod bindgen_methods {
                 // Durable Object will never be destroyed while there is still
                 // a running promise inside of it, therefore we can let a reference
                 // to the durable object escape into a static-lifetime future.
-                let static_self: &'static mut Self = unsafe {&mut *(self as *mut _)};
+                let static_self: &'static Self = unsafe {&*(self as *const _)};
 
                 ::worker::wasm_bindgen_futures::future_to_promise(async move {
                     <Self as ::worker::DurableObject>::websocket_message(static_self, ws.into(), message).await
@@ -107,7 +107,7 @@ mod bindgen_methods {
 
             #[wasm_bindgen(js_name = webSocketClose)]
             pub fn websocket_close(
-                &mut self,
+                &self,
                 ws: ::worker::worker_sys::web_sys::WebSocket,
                 code: usize,
                 reason: String,
@@ -117,7 +117,7 @@ mod bindgen_methods {
                 // Durable Object will never be destroyed while there is still
                 // a running promise inside of it, therefore we can let a reference
                 // to the durable object escape into a static-lifetime future.
-                let static_self: &'static mut Self = unsafe {&mut *(self as *mut _)};
+                let static_self: &'static Self = unsafe {&*(self as *const _)};
 
                 ::worker::wasm_bindgen_futures::future_to_promise(async move {
                     <Self as ::worker::DurableObject>::websocket_close(static_self, ws.into(), code, reason, was_clean).await
@@ -128,7 +128,7 @@ mod bindgen_methods {
 
             #[wasm_bindgen(js_name = webSocketError)]
             pub fn websocket_error(
-                &mut self,
+                &self,
                 ws: ::worker::worker_sys::web_sys::WebSocket,
                 error: ::worker::wasm_bindgen::JsValue
             ) -> ::worker::js_sys::Promise {
@@ -136,7 +136,7 @@ mod bindgen_methods {
                 // Durable Object will never be destroyed while there is still
                 // a running promise inside of it, therefore we can let a reference
                 // to the durable object escape into a static-lifetime future.
-                let static_self: &'static mut Self = unsafe {&mut *(self as *mut _)};
+                let static_self: &'static Self = unsafe {&*(self as *const _)};
 
                 ::worker::wasm_bindgen_futures::future_to_promise(async move {
                     <Self as ::worker::DurableObject>::websocket_error(static_self, ws.into(), error.into()).await
