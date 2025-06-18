@@ -233,6 +233,7 @@ mod router;
 mod schedule;
 pub mod send;
 mod socket;
+mod sql;
 mod streams;
 mod version;
 mod websocket;
@@ -256,3 +257,5 @@ pub type HttpRequest = ::http::Request<http::body::Body>;
 pub type HttpResponse = ::http::Response<http::body::Body>;
 #[cfg(feature = "http")]
 pub use http::service::Service;
+
+pub use crate::sql::*;
