@@ -245,7 +245,7 @@ To define a Durable Object using the `worker` crate you need to implement the `D
 on your own struct. Additionally, the `#[durable_object]` attribute macro must be applied to the struct definition.
 
 ```rust
-use worker::*;
+use worker::{durable_object, State, Env, Result, Request, Response};
 
 #[DurableObject]
 pub struct Chatroom {
@@ -295,7 +295,7 @@ new_classes = ["Chatroom"] # Array of new classes
 Durable Objects can use SQLite for persistent storage, providing a relational database interface. To enable SQLite storage, you need to use `new_sqlite_classes` in your migration and access the SQL storage through `state.storage().sql()`.
 
 ```rust
-use worker::*;
+use worker::{durable_object, State, Env, Result, Request, Response, SqlStorage};
 
 #[durable_object]
 pub struct SqlCounter {
