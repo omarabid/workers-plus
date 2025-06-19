@@ -4039,7 +4039,7 @@ dependencies = [
 
 [[package]]
 name = "worker"
-version = "0.5.0"
+version = "0.6.0"
 dependencies = [
  "async-trait",
  "axum",
@@ -4120,7 +4120,7 @@ dependencies = [
 
 [[package]]
 name = "worker-macros"
-version = "0.5.0"
+version = "0.6.0"
 dependencies = [
  "async-trait",
  "proc-macro2",
@@ -4167,7 +4167,7 @@ dependencies = [
 
 [[package]]
 name = "worker-sys"
-version = "0.5.0"
+version = "0.6.0"
 dependencies = [
  "cfg-if",
  "js-sys",
