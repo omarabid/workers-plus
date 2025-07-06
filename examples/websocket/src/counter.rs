@@ -8,11 +8,10 @@ use crate::{
 };
 
 use worker::{
-    async_trait, durable_object, js_sys, wasm_bindgen, wasm_bindgen_futures, worker_sys, Env,
-    Request, Response,
+    DurableObject, Env, Request, Response, State,
 };
 
-#[durable_object]
+#[worker::DurableObject]
 #[derive(Clone)]
 pub struct LiveCounter {
     /// Struct wrapper for [worker::State].
@@ -21,7 +20,6 @@ pub struct LiveCounter {
     users: Users,
 }
 
-#[durable_object]
 impl DurableObject for LiveCounter {
     fn new(state: State, _: Env) -> Self {
         Self {
