@@ -5,7 +5,6 @@ use crate::analytics_engine::AnalyticsEngineDataset;
 use crate::d1::D1Database;
 #[cfg(feature = "queue")]
 use crate::Queue;
-use crate::SendEmail;
 use crate::{durable::ObjectNamespace, Bucket, DynamicDispatcher, Fetcher, Result};
 use crate::{error::Error, hyperdrive::Hyperdrive};
 
@@ -120,10 +119,6 @@ impl Env {
         self.get_binding(binding)
     }
 
-    /// Access send_email binding for sending emails to verified destinations configured in your wrangler.toml file.
-    pub fn send_email(&self, binding: &str) -> Result<SendEmail> {
-        self.get_binding(binding)
-    }
 }
 
 pub trait EnvBinding: Sized + JsCast {

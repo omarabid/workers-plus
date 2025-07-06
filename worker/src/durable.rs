@@ -795,7 +795,7 @@ to the struct.
 ```no_run
 use worker::*;
 
-#[DurableObject]
+#[durable_object]
 pub struct Chatroom {
     users: Vec<User>,
     messages: Vec<Message>,

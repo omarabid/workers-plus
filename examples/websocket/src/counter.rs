@@ -11,7 +11,7 @@ use worker::{
     DurableObject, Env, Request, Response, State,
 };
 
-#[worker::DurableObject]
+#[worker::durable_object]
 #[derive(Clone)]
 pub struct LiveCounter {
     /// Struct wrapper for [worker::State].
