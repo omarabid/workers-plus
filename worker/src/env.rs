@@ -5,7 +5,7 @@ use crate::analytics_engine::AnalyticsEngineDataset;
 use crate::d1::D1Database;
 #[cfg(feature = "queue")]
 use crate::Queue;
-use crate::{durable::ObjectNamespace, Bucket, DynamicDispatcher, Fetcher, Result};
+use crate::{durable::ObjectNamespace, Bucket, DynamicDispatcher, Fetcher, Result, SecretStore};
 use crate::{error::Error, hyperdrive::Hyperdrive};
 
 use crate::Ai;
@@ -119,6 +119,10 @@ impl Env {
         self.get_binding(binding)
     }
 
+    /// Access a Secret Store by the binding name configured in your wrangler.toml file.
+    pub fn secret_store(&self, binding: &str) -> Result<SecretStore> {
+        self.get_binding(binding)
+    }
 }
 
 pub trait EnvBinding: Sized + JsCast {
