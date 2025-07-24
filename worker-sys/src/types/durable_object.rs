@@ -17,7 +17,7 @@ pub use transaction::*;
 #[wasm_bindgen]
 extern "C" {
     #[wasm_bindgen(extends=js_sys::Object)]
-    #[derive(Debug, Clone)]
+    #[derive(Clone, Debug)]
     pub type DurableObject;
 
     #[wasm_bindgen(method, catch, js_name=fetch)]
